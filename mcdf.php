@@ -1,20 +1,20 @@
 <?php
 /**
- * Plugin Name: My Hello World Plugin
+ * Plugin Name: Mon Centre de Formation
  * Description: Un exemple de plugin WordPress avec React.
- * Version: 1.0
- * Author: Votre nom
+ * Version: 0.1
+ * Author: Piech Kevin
  */
 
 // Fonction pour mettre en file d'attente le script React
-function enqueue_hello_world_script() {
-    // Remplacez 'path/to/your/build/static/js/main.js' par le chemin réel vers votre fichier JavaScript compilé
-    wp_enqueue_script('hello-world-js', plugin_dir_url(__FILE__) . 'build/static/js/main.feac310d.js', ['wp-element'], time(), true);
-}
-add_action('wp_enqueue_scripts', 'enqueue_hello_world_script');
+function enqueue_react_app_script() {
+    $directory = plugin_dir_path( __FILE__ ) . 'build/static/js/';
+    $files = glob($directory . 'main*.js');
+    if (count($files) > 0) {
+      $fileName = basename($files[0]);
+      wp_enqueue_script('my_react_app', plugin_dir_url( __FILE__ ) . 'build/static/js/' . $fileName, [], null, true);
+    }
+  }
+  add_action('wp_enqueue_scripts', 'enqueue_react_app_script');
 
-// Fonction pour créer le shortcode
-function hello_world_shortcode() {
-    return '<div id="hello-world-root"></div>';
-}
-add_shortcode('hello_world', 'hello_world_shortcode');
+  include_once plugin_dir_path(__FILE__) . 'includes/formations.php';
