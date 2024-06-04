@@ -1,180 +1,196 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+/* global appLocalizer */
+import React, { useState, useEffect } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import Notification from './components/Notification';
 
-// Définir le schéma de validation
-const schema = z.object({
-  titre: z.enum(['Monsieur', 'Madame']),
-  nom: z.string(),
-  prenom: z.string(),
-  date_naissance: z.string(),
-  fonction: z.string(),
-  telephone: z.string(),
-  adresse_mail: z.string().email(),
-  adresse1: z.string(),
-  cp: z.number(),
-  ville: z.string(),
+const validationSchema = Yup.object().shape({
+    civilite: Yup.string().required('La civilité est obligatoire'),
+    nom: Yup.string().required('Le nom est obligatoire'),
+    prenom: Yup.string().required('Le prénom est obligatoire'),
+    email: Yup.string().email('Adresse email invalide').required('L’email est obligatoire'),
+    telephone: Yup.string().matches(/^[0-9]+$/, 'Le numéro de téléphone doit être numérique').required('Le téléphone est obligatoire'),
+    adresse: Yup.string().required('L’adresse est obligatoire'),
+    date_naissance: Yup.date().required('La date de naissance est obligatoire'),
+    niveau_formation: Yup.string().required('Le niveau de formation est obligatoire'),
+    situation_professionnelle: Yup.string().required('La situation professionnelle est obligatoire'),
+    handicape: Yup.bool(),
 });
 
-const AddStagiairesForm = () => {
-  const { control, handleSubmit, reset, formState: { errors } } = useForm({
-    resolver: zodResolver(schema)
-  });
-  
-  const [stagiaires, setStagiaires] = useState([]);
+const StagiaireForm = () => {
+    const [stagiaireAdded, setStagiaireAdded] = useState({});
+    const [showToast, setShowToast] = useState(false);
+   
+    const handleShowToast = () => {
+        setShowToast(true);
+    };
 
-  const addStagiaire = (data) => {
-    setStagiaires([...stagiaires, data]);
-    reset();
-  };
+    const handleHideToast = () => {
+        setShowToast(false);
+    };
+    
+    const handleSubmit = (values) => {
+        console.log('Form data', values);
+        
+        fetch(`${appLocalizer.apiUrl}mcdf/v1/stagiaires/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(values)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success:', data);
+            setStagiaireAdded(values);
+            setShowToast(true); // Afficher le toast en cas de succès
+            setTimeout(() => setShowToast(false), 10000);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    };
 
-  const onSubmit = async () => {
-    try {
-      const response = await axios.post('/wordpress/wp-json/myplugin/v1/add_stagiaires', { stagiaires });
-      if (response.status === 200) {
-        alert('Stagiaires ajoutés avec succès');
-      }
-    } catch (error) {
-      alert('Erreur lors de l\'ajout des stagiaires');
-    }
-  };
+    return (
+        <div>
+            <Notification 
+                show={showToast} 
+                hideToast={handleHideToast} 
+                content="Le stagiaire a été créé avec succès."
+                additionalClasses="position-fixed start-50 align-items-center text-bg-success border-0"
+            />
 
-  return (
-    <div className="container">
-      <h1>Ajouter des Stagiaires</h1>
-      <form onSubmit={handleSubmit(addStagiaire)}>
-        {/* Titre */}
-        <div className="mb-3">
-          <label className="form-label">Titre</label>
-          <Controller
-            name="titre"
-            control={control}
-            defaultValue=""
-            render={({ field }) => (
-              <select className="form-control" {...field}>
-                <option value="" disabled>Sélectionner un titre</option>
-                <option value="Monsieur">Monsieur</option>
-                <option value="Madame">Madame</option>
-              </select>
-            )}
-          />
-          {errors.titre && <span className="text-danger">{errors.titre.message}</span>}
-        </div>
+        <Formik
+            initialValues={{
+                civilite: '',
+                nom: '',
+                prenom: '',
+                email: '',
+                telephone: '',
+                adresse: '',
+                date_naissance: '',
+                niveau_formation: '',
+                situation_professionnelle: '',
+                handicape: false,
+            }}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+        >
+            {({ errors, touched }) => (
+                 <Form>
+                 <div className="col-lg-3 mb-3">
+                     <label htmlFor="civilite" className="form-label">Civilité</label>
+                     <Field as="select" name="civilite" className={`form-select ${touched.civilite && errors.civilite ? 'is-invalid' : ''}`}>
+                         <option value="" disabled>Sélectionnez votre civilité</option>
+                         <option value="Madame">Madame</option>
+                         <option value="Monsieur">Monsieur</option>
+                     </Field>
+                     <ErrorMessage name="civilite" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="nom" className="form-label">Nom</label>
+                     <Field name="nom" placeholder="Nom" className={`form-control ${touched.nom && !errors.nom ? 'is-valid' : ''} ${touched.nom && errors.nom ? 'is-invalid' : ''}`} />
+                     {touched.nom && !errors.nom && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="nom" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="prenom" className="form-label">Prénom</label>
+                     <Field name="prenom" placeholder="Prénom" className={`form-control ${touched.prenom && !errors.prenom ? 'is-valid' : ''} ${touched.prenom && errors.prenom ? 'is-invalid' : ''}`} />
+                     {touched.prenom && !errors.prenom && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="prenom" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="date_naissance" className="form-label">Date de Naissance</label>
+                     <Field name="date_naissance" type="date" className={`form-control ${touched.date_naissance && !errors.date_naissance ? 'is-valid' : ''} ${touched.date_naissance && errors.date_naissance ? 'is-invalid' : ''}`} />
+                     {touched.date_naissance && !errors.date_naissance && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="date_naissance" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="email" className="form-label">Email</label>
+                     <Field name="email" type="email" placeholder="Email" className={`form-control ${touched.email && !errors.email ? 'is-valid' : ''} ${touched.email && errors.email ? 'is-invalid' : ''}`} />
+                     {touched.email && !errors.email && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="email" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="telephone" className="form-label">Téléphone</label>
+                     <Field name="telephone" placeholder="Téléphone" className={`form-control ${touched.telephone && !errors.telephone ? 'is-valid' : ''} ${touched.telephone && errors.telephone ? 'is-invalid' : ''}`} />
+                     {touched.telephone && !errors.telephone && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="telephone" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="adresse" className="form-label">Adresse</label>
+                     <Field name="adresse" as="textarea" placeholder="Adresse" className={`form-control ${touched.adresse && !errors.adresse ? 'is-valid' : ''} ${touched.adresse && errors.adresse ? 'is-invalid' : ''}`} />
+                     {touched.adresse && !errors.adresse && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="adresse" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="niveau_formation" className="form-label">Niveau de Formation</label>
+                     <Field name="niveau_formation" placeholder="Niveau de formation" className={`form-control ${touched.niveau_formation && !errors.niveau_formation ? 'is-valid' : ''} ${touched.niveau_formation && errors.niveau_formation ? 'is-invalid' : ''}`} />
+                     {touched.niveau_formation && !errors.niveau_formation && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="niveau_formation" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="mb-3">
+                     <label htmlFor="situation_professionnelle" className="form-label">Situation Professionnelle</label>
+                     <Field name="situation_professionnelle" placeholder="Situation professionnelle" className={`form-control ${touched.situation_professionnelle && !errors.situation_professionnelle ? 'is-valid' : ''} ${touched.situation_professionnelle && errors.situation_professionnelle ? 'is-invalid' : ''}`} />
+                     {touched.situation_professionnelle && !errors.situation_professionnelle && (
+                         <div className="valid-feedback">
+                             <i className="fas fa-check"></i>
+                         </div>
+                     )}
+                     <ErrorMessage name="situation_professionnelle" component="div" className="invalid-feedback" />
+                 </div>
+             
+                 <div className="form-check mb-3">
+                     <Field name="handicape" type="checkbox" className="form-check-input" id="handicape" />
+                     <label className="form-check-label" htmlFor="handicape">En situation de Handicap</label>
+                 </div>
+             
+                 <button type="submit" className="btn btn-primary">Soumettre</button>
+                 <button type="button" className="btn btn-primary" onClick={handleShowToast}>Tester le Toast</button>
+             </Form>
 
-        {/* Nom et Prénom */}
-        <div className="row mb-3">
-          <div className="col">
-            <label className="form-label">Nom</label>
-            <Controller
-              name="nom"
-              control={control}
-              defaultValue=""
-              render={({ field }) => <input className="form-control" type="text" {...field} />}
-            />
-            {errors.nom && <span className="text-danger">{errors.nom.message}</span>}
-          </div>
-          <div className="col">
-            <label className="form-label">Prénom</label>
-            <Controller
-              name="prenom"
-              control={control}
-              defaultValue=""
-              render={({ field }) => <input className="form-control" type="text" {...field} />}
-            />
-            {errors.prenom && <span className="text-danger">{errors.prenom.message}</span>}
-          </div>
-        </div>
-        {/* Date de naissance */}
-        <div className="mb-3">
-          <label className="form-label">Date de naissance</label>
-          <Controller
-            name="date_naissance"
-            control={control}
-            defaultValue=""
-            render={({ field }) => <input className="form-control" type="date" {...field} />}
-          />
-          {errors.date_naissance && <span className="text-danger">{errors.date_naissance.message}</span>}
-        </div>
-        {/* Fonction */}
-        <div className="mb-3">
-          <label className="form-label">Fonction</label>
-          <Controller
-            name="fonction"
-            control={control}
-            defaultValue=""
-            render={({ field }) => <input className="form-control" type="text" {...field} />}
-          />
-          {errors.fonction && <span className="text-danger">{errors.fonction.message}</span>}
-        </div>
-        {/* Téléphone */}
-        <div className="mb-3">
-          <label className="form-label">Téléphone</label>
-          <Controller
-            name="telephone"
-            control={control}
-            defaultValue=""
-            render={({ field }) => <input className="form-control" type="text" {...field} />}
-          />
-          {errors.telephone && <span className="text-danger">{errors.telephone.message}</span>}
-        </div>
-        {/* Adresse mail */}
-        <div className="mb-3">
-          <label className="form-label">Adresse mail</label>
-          <Controller
-            name="adresse_mail"
-            control={control}
-            defaultValue=""
-            render={({ field }) => <input className="form-control" type="email" {...field} />}
-          />
-          {errors.adresse_mail && <span className="text-danger">{errors.adresse_mail.message}</span>}
-        </div>
-        {/* Adresse 1, Code postal, et Ville */}
-        <div className="row mb-3">
-          <div className="col">
-            <label className="form-label">Adresse 1</label>
-            <Controller
-              name="adresse1"
-              control={control}
-              defaultValue=""
-              render={({ field }) => <input className="form-control" type="text" {...field} />}
-            />
-            {errors.adresse1 && <span className="text-danger">{errors.adresse1.message}</span>}
-          </div>
-          <div className="col">
-            <label className="form-label">Code postal</label>
-            <Controller
-              name="cp"
-              control={control}
-              defaultValue=""
-              render={({ field }) => <input className="form-control" type="number" {...field} />}
-            />
-            {errors.cp && <span className="text-danger">{errors.cp.message}</span>}
-          </div>
-          <div className="col">
-            <label className="form-label">Ville</label>
-            <Controller
-              name="ville"
-              control={control}
-              defaultValue=""
-              render={({ field }) => <input className="form-control" type="text" {...field} />}
-            />
-            {errors.ville && <span className="text-danger">{errors.ville.message}</span>}
-          </div>
-        </div>
-        <button type="submit" className="btn btn-primary">Ajouter Stagiaire</button>
-      </form>
-      <button onClick={onSubmit} className="btn btn-success mt-3">Soumettre tous les stagiaires</button>
-      <ul>
-        {stagiaires.map((stagiaire, index) => (
-          <li key={index}>
-            {stagiaire.nom} {stagiaire.prenom} {/* Affichez d'autres champs comme vous le souhaitez */}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+             
+         )}
+     </Formik>
+     </div>
+
+ );
 };
 
-export default AddStagiairesForm;
+export default StagiaireForm;

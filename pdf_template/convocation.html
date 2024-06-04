@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convocation</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        width: 100%;
+        margin: auto;
+      }
+      .header img {
+        height: 120px; /* Hauteur ajustée */
+        width: auto; /* Largeur automatique */
+      }
+      .textconvocation {
+        width: 100%;
+        text-align: center; /* Alignement du texte à gauche */
+        background-color: #f2f2f2;
+      }
+      .content {
+        margin-top: 20px;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .table,
+      .table th,
+      .table td {
+        border: 1px solid black;
+      }
+      .table th,
+      .table td {
+        padding: 10px;
+        text-align: center;
+      }
+      footer {
+                position: fixed; 
+                bottom: 0px; 
+                left: 0px; 
+                right: 0px;
+                height: 50px; 
+
+                /** Extra personal styles **/
+                background-color: #03a9f4;
+                color: white;
+                text-align: center;
+                font-size: 10px;
+                line-height: 35px;
+            }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <table class="header" width="100%">
+        <tr>
+          <td>
+            <img
+              src="https://afsis.kevinpiech.fr/wp-content/uploads/elementor/thumbs/cropped-logo-afsis-anime-q1e3q0mgennj7tp10lci9kd5hqklaw69tv4yu9kuak.gif"
+              alt=""
+            />
+          </td>
+          <td width="90%" valign="bottom">
+            <div class="textconvocation">
+              <h1>Convocation</h1>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div class="content">
+        <p>
+          <strong>Monsieur {{stagiaires.prenom}} {{stagiaires.nom}}</strong>
+        </p>
+        <p>
+          Nous avons le plaisir de vous communiquer les informations concernant
+          la session de formation action à laquelle vous allez participer :
+        </p>
+        <p><strong>Maintien et Actualisation des Compétences du SST</strong></p>
+        <p><strong>Lieu de formation :</strong> Pôle culturel</p>
+        <p>
+          <strong>Dates :</strong> du <strong>02/05/2023</strong> au
+          <strong>02/05/2023</strong> <br />
+          Horaire matin et après-midi
+        </p>
+        <p>Pour une durée totale de : <strong>7 h</strong></p>
+        <table class="table">
+          <tr>
+            <th>Dates et heures de formation</th>
+            <th>Matin</th>
+            <th>Après-midi</th>
+          </tr>
+          <tr>
+            <td>Séquence 1 - 02/05/2023</td>
+            <td>8h30 à 12h00</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Séquence 2 - 02/05/2023</td>
+            <td></td>
+            <td>13h00 à 16h30</td>
+          </tr>
+        </table>
+      </div>
+      <div class="footer">
+        <p>
+          Merci de vous présenter 15 minutes à l'avance pour un démarrage
+          effectif à l'heure dite.<br />
+          Ce document est à renvoyer de préférence par email, daté et signé aux
+          différents endroits avant le début de la formation ou remis au
+          formateur, le premier jour de la session.<br />
+          À défaut le participant ne sera pas accepté à la session.
+        </p>
+        <p>(cocher les cases)</p>
+        <fieldset>
+          <legend>Choose your monster's features:</legend>
+
+          <div>
+            <input type="checkbox" id="scales" name="scales" checked />
+            <label for="scales">Scales</label>
+          </div>
+
+          <div>
+            <input type="checkbox" id="horns" name="horns" />
+            <label for="horns">Horns</label>
+          </div>
+        </fieldset>
+        <p>
+          Date : <strong>02/05/2023</strong><br />
+          Adresse email :
+        </p>
+        <p>
+          Signature du participant<br />
+          <strong>Monsieur {{stagiaires.prenom}} {{stagiaires.nom}}</strong>
+        </p>
+      </div>
+    </div>
+    <footer>
+        <p>
+          Chemin Saint Esprit 83660 Nans les Pins - 06 87 35 83 64 -
+          contact@formati...nsecurite-incendie.net<br />
+          Siret: 501 316 186 00011 - N° Activité: 93 83 03965 83 - APE: 8559A -
+          Agrément SSIAP N° 8319 DATADOCK 0044620
+        </p>
+    </footer>
+  </body>
+</html>
